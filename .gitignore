@@ -1,0 +1,13 @@
+__pycache__/
+.DS_Store
+.env
+venv/
+.idea/
+.vscode/
+build/
+dist/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+pdf/
+pdf_text/
