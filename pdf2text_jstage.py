@@ -19,35 +19,55 @@ from bunkai import Bunkai
 from pathlib import Path
 import re
 
-def insert_newlines_for_subheadings(text):
-    # 小見出し後に改行を挿入するための正規表現パターン
-    subheading_pattern = re.compile(r'(\d+\．[^\s]+)')
-    # 小見出しの後に改行を挿入
-    modified_text = re.sub(subheading_pattern, r'\1\n', text)
-    return modified_text
-
 def bunkai_text(text):
-    # 既存の処理...
-    # text = insert_newlines_for_subheadings(text)
+    separator = "▁"
 
     # テキストを文分割する
-    text = text.replace("\n", "▁")
-    #print("text:" + text)
+    text = text.replace("\n", separator)
 
     bunkai = Bunkai()
-    #pattern = re.compile(r'(?<=\S)▁(?=\S)')
-    #pattern = re.compile(r'(?<=\S)▁(?!\d)')
-    pattern = re.compile(r'(?<![0-9])▁(?!\d)')
 
     result = ""
     a = bunkai(text)
     a = list(a)  # Convert generator to list
-    print("a len:", len(a))
-    
+    #a = [text]
+
+    # 数字に続くピリオドで始まる単語をチェックする正規表現パターン
+    pattern_num = re.compile(r'^\d+\.')
+    pattern = re.compile(r'(?<=\S)▁(?=\S)')
+
+    '''
+    pattern = re.compile(r'(?<![0-9])▁(?!\d)')
     for sentence in a:
         sentence = re.sub(pattern, "", sentence)  # 任意の文字と文字の間にある ▁ (U+2581) のみ削除
         sentence = sentence.replace("▁", "\n")  # その他の ▁ (U+2581) は改行に戻す
         result += sentence
+    '''    
+
+    previous_word = ""
+
+    for sentence in a:
+        words = sentence.split(separator)
+
+        for word in words:
+            if word:
+                
+                temp_word = previous_word + '▁' + word
+                replace_word = re.sub(pattern, "", temp_word)  # 任意の文字と文字の間にある ▁ (U+2581) のみ削除
+
+                if pattern_num.match(word):
+                    # 1. 2. 3. などの数字に続くピリオドで始まる単語の場合は改行を加える
+                    result += "\n" + word
+                elif pattern_num.match(previous_word):
+                    # 前の単語が数字に続くピリオドで始まる単語の場合は改行を加える
+                    result += word + "\n"
+                elif temp_word != replace_word:
+                    # 置換された場合は、改行なしで単語を追加
+                    result += word
+                else:
+                    result += word + "\n"
+
+                previous_word = word  # 現在の単語を前の単語として記憶
 
     return result
 
@@ -62,7 +82,7 @@ def process_pdf_files(folder_path):
                 text = page.get_text().encode("utf8")  # プレーンテキストを取得（UTF-8形式）
                 text = bunkai_text(text.decode("utf8"))
                 
-                out.write(f"【page {i}】\n")
+                #out.write(f"【page {i}】\n")
                 out.write(text + "\n")  # ページのテキストを書き込む
                 print(f"page {i}")
                 print(text)
