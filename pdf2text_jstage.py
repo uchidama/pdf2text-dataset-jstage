@@ -34,7 +34,8 @@ def bunkai_text(text):
 
     # 数字に続くピリオドで始まる単語をチェックする正規表現パターン
     pattern_num = re.compile(r'^\d+\.')
-    pattern = re.compile(r'(?<=\S)▁(?=\S)')
+    #pattern = re.compile(r'(?<=\S)▁(?=\S)')
+    pattern = re.compile(r'(?<=\S){}(?=\S)'.format(separator))
 
     '''
     pattern = re.compile(r'(?<![0-9])▁(?!\d)')
@@ -52,7 +53,7 @@ def bunkai_text(text):
         for word in words:
             if word:
                 
-                temp_word = previous_word + '▁' + word
+                temp_word = previous_word + separator + word
                 replace_word = re.sub(pattern, "", temp_word)  # 任意の文字と文字の間にある ▁ (U+2581) のみ削除
 
                 if pattern_num.match(word):
